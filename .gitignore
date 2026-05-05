@@ -1,0 +1,6 @@
+src/bld/*.exe
+src/bld/*.o
+src/tst/tmp/*.tmp
+experiment/graphs/*.txt
+experiment/results/*.txt
+experiment/bld/*.exe
