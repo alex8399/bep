@@ -29,8 +29,10 @@ ${TARGET_DIR}/experiment.exe: \
 	${BLD_DIR}/experiment.o \
 	${BLD_DIR}/file_facilities.o \
 	${BLD_DIR}/main.o \
-	${BLD_DIR}/sequential_boruvka_mst_solver.o \
-	${BLD_DIR}/openmp_boruvka_mst_solver.o \
+	${BLD_DIR}/sequential_boruvka_mst_solver_findpivotsafely.o \
+	${BLD_DIR}/sequential_boruvka_mst_solver_findpivot.o \
+	${BLD_DIR}/openmp_boruvka_mst_solver_mapreduce.o \
+	${BLD_DIR}/openmp_boruvka_mst_solver_mutex.o \
 	${BLD_DIR}/stdthread_boruvka_mst_solver.o \
 	${BLD_DIR}/cuda_boruvka_mst_solver.o \
 	${BLD_DIR}/timer.o
@@ -48,10 +50,16 @@ ${BLD_DIR}/file_facilities.o: ${LIB_DIR}/file_facilities.cpp
 ${BLD_DIR}/main.o: ${LIB_DIR}/main.cpp
 	${CC} ${CFLAGS} -c $< -o $@
 
-${BLD_DIR}/sequential_boruvka_mst_solver.o: ${LIB_DIR}/sequential_boruvka_mst_solver.cpp
+${BLD_DIR}/sequential_boruvka_mst_solver_findpivot.o: ${LIB_DIR}/sequential_boruvka_mst_solver_findpivot.cpp
 	${CC} ${CFLAGS} -c $< -o $@
 
-${BLD_DIR}/openmp_boruvka_mst_solver.o: ${LIB_DIR}/openmp_boruvka_mst_solver.cpp
+${BLD_DIR}/sequential_boruvka_mst_solver_findpivotsafely.o: ${LIB_DIR}/sequential_boruvka_mst_solver_findpivotsafely.cpp
+	${CC} ${CFLAGS} -c $< -o $@
+
+${BLD_DIR}/openmp_boruvka_mst_solver_mapreduce.o: ${LIB_DIR}/openmp_boruvka_mst_solver_mapreduce.cpp
+	${CC} ${CFLAGS} ${OPENMPFLAGS} -c $< -o $@
+
+${BLD_DIR}/openmp_boruvka_mst_solver_mutex.o: ${LIB_DIR}/openmp_boruvka_mst_solver_mutex.cpp
 	${CC} ${CFLAGS} ${OPENMPFLAGS} -c $< -o $@
 
 ${BLD_DIR}/stdthread_boruvka_mst_solver.o: ${LIB_DIR}/stdthread_boruvka_mst_solver.cpp
@@ -73,8 +81,10 @@ ${TARGET_DIR}/tst_experiment.exe: \
 	${BLD_DIR}/base_boruvka_mst_solver.o \
 	${BLD_DIR}/experiment.o \
 	${BLD_DIR}/file_facilities.o \
-	${BLD_DIR}/sequential_boruvka_mst_solver.o \
-	${BLD_DIR}/openmp_boruvka_mst_solver.o \
+	${BLD_DIR}/sequential_boruvka_mst_solver_findpivotsafely.o \
+	${BLD_DIR}/sequential_boruvka_mst_solver_findpivot.o \
+	${BLD_DIR}/openmp_boruvka_mst_solver_mapreduce.o \
+	${BLD_DIR}/openmp_boruvka_mst_solver_mutex.o \
 	${BLD_DIR}/stdthread_boruvka_mst_solver.o \
 	${BLD_DIR}/cuda_boruvka_mst_solver.o \
 	${BLD_DIR}/timer.o

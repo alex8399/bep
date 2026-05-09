@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 #include "graph.hpp"
-#include "sequential_boruvka_mst_solver.hpp"
-#include "openmp_boruvka_mst_solver.hpp"
+#include "sequential_boruvka_mst_solver_findpivotsafely.hpp"
+#include "sequential_boruvka_mst_solver_findpivot.hpp"
+#include "openmp_boruvka_mst_solver_mapreduce.hpp"
+#include "openmp_boruvka_mst_solver_mutex.hpp"
 #include "stdthread_boruvka_mst_solver.hpp"
 #include "cuda_boruvka_mst_solver.hpp"
 #include <stdexcept>
@@ -105,8 +107,10 @@ protected:
 };
 
 using SolverTypes = ::testing::Types<
-    SequentialBoruvkaMSTSolver,
-    OpenMPBoruvkaMSTSolver,
+    SequentialBoruvkaMSTSolverWithFindPivot,
+    SequentialBoruvkaMSTSolverWithFindPivotSafely,
+    OpenMPBoruvkaMSTSolverMapReduce,
+    OpenMPBoruvkaMSTSolverMutex,
     StdThreadBoruvkaMSTSolver,
     CudaBoruvkaMSTSolver>;
 

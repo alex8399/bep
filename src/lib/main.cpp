@@ -1,8 +1,10 @@
 #include <stdexcept>
 #include <string>
 #include "base_boruvka_mst_solver.hpp"
-#include "sequential_boruvka_mst_solver.hpp"
-#include "openmp_boruvka_mst_solver.hpp"
+#include "sequential_boruvka_mst_solver_findpivot.hpp"
+#include "sequential_boruvka_mst_solver_findpivotsafely.hpp"
+#include "openmp_boruvka_mst_solver_mapreduce.hpp"
+#include "openmp_boruvka_mst_solver_mutex.hpp"
 #include "stdthread_boruvka_mst_solver.hpp"
 #include "cuda_boruvka_mst_solver.hpp"
 #include <memory>
@@ -12,8 +14,10 @@
 constexpr int OK = 0;
 constexpr int ERROR = 1;
 
-const std::string SEQUENTIAL_BORUVKA_TYPE = "SEQ";
-const std::string OPENMP_BORUVKA_TYPE = "OPENMP";
+const std::string SEQUENTIAL_BORUVKA_TYPE_FINDPIVOT = "SEQ_FINDPIVOT";
+const std::string SEQUENTIAL_BORUVKA_TYPE_FINDPIVOTSAFELY = "SEQ_FINDPIVOTSAFELY";
+const std::string OPENMP_BORUVKA_TYPE_MAPREDUCE = "OPENMP_MAPREDUCE";
+const std::string OPENMP_BORUVKA_TYPE_MUTEX = "OPENMP_MUTEX";
 const std::string STDTHREAD_BORUVKA_TYPE = "STDTHREAD";
 const std::string CUDA_BORUVKA_TYPE = "CUDA";
 
@@ -23,13 +27,21 @@ static std::unique_ptr<BaseBoruvkaMSTSolver> createBoruvkaMSTSolver(const std::s
 
 static std::unique_ptr<BaseBoruvkaMSTSolver> createBoruvkaMSTSolver(const std::string &arg)
 {
-    if (arg == SEQUENTIAL_BORUVKA_TYPE)
+    if (arg == SEQUENTIAL_BORUVKA_TYPE_FINDPIVOT)
     {
-        return std::make_unique<SequentialBoruvkaMSTSolver>();
+        return std::make_unique<SequentialBoruvkaMSTSolverWithFindPivot>();
     }
-    else if (arg == OPENMP_BORUVKA_TYPE)
+    else if (arg == SEQUENTIAL_BORUVKA_TYPE_FINDPIVOTSAFELY)
     {
-        return std::make_unique<OpenMPBoruvkaMSTSolver>();
+        return std::make_unique<SequentialBoruvkaMSTSolverWithFindPivotSafely>();
+    }
+    else if (arg == OPENMP_BORUVKA_TYPE_MAPREDUCE)
+    {
+        return std::make_unique<OpenMPBoruvkaMSTSolverMapReduce>();
+    }
+    else if (arg == OPENMP_BORUVKA_TYPE_MUTEX)
+    {
+        return std::make_unique<OpenMPBoruvkaMSTSolverMutex>();
     }
     else if (arg == STDTHREAD_BORUVKA_TYPE)
     {
@@ -42,8 +54,7 @@ static std::unique_ptr<BaseBoruvkaMSTSolver> createBoruvkaMSTSolver(const std::s
     else
     {
         throw std::invalid_argument(
-            "Algorithm type " + arg + " does not exist\n"
-            "Correct types: SEQ OPENMP STDTHREAD");
+            "Algorithm type " + arg + " does not exist\n");
     }
 }
 

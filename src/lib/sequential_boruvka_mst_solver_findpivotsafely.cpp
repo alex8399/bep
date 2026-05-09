@@ -1,4 +1,4 @@
-#include "sequential_boruvka_mst_solver.hpp"
+#include "sequential_boruvka_mst_solver_findpivotsafely.hpp"
 
 #include "graph.hpp"
 #include <numeric>
@@ -7,6 +7,7 @@
 #include "experiment_setup.hpp"
 
 static inline int findPivot(std::vector<int> &pivots, int vertex);
+static inline int findPivotSafely(const std::vector<int> &pivots, int vertex);
 static void uniteRoots(std::vector<int> &pivots, std::vector<int> &sizes, int root1, int root2);
 
 constexpr int NULL_EDGE = -1;
@@ -31,6 +32,19 @@ static inline int findPivot(std::vector<int> &pivots, int vertex)
     return root;
 }
 
+static inline int findPivotSafely(const std::vector<int> &pivots, int vertex)
+{
+    int root = vertex;
+    int next;
+
+    while (pivots[root] != root)
+    {
+        root = pivots[root];
+    }
+
+    return root;
+}
+
 static void uniteRoots(std::vector<int> &pivots, std::vector<int> &sizes, int root1, int root2)
 {
     if (sizes[root1] < sizes[root2])
@@ -42,7 +56,8 @@ static void uniteRoots(std::vector<int> &pivots, std::vector<int> &sizes, int ro
     sizes[root1] += sizes[root2];
 }
 
-void SequentialBoruvkaMSTSolver::calculateMST(const Graph &graph, Graph &mst, ExperimentSetup &experimentSetup) const
+void SequentialBoruvkaMSTSolverWithFindPivotSafely::calculateMST(
+    const Graph &graph, Graph &mst, ExperimentSetup &experimentSetup) const
 {
     mst.verticesNum = graph.verticesNum;
     mst.edges.reserve(graph.verticesNum > 0 ? graph.verticesNum - 1 : 0);
@@ -56,15 +71,15 @@ void SequentialBoruvkaMSTSolver::calculateMST(const Graph &graph, Graph &mst, Ex
 
     while (treesNum > 1)
     {
-        std::fill(cheapestEdge.begin(), cheapestEdge.end(), NULL_EDGE);
-
         experimentSetup.edgePhaseTimer.start();
+
+        std::fill(cheapestEdge.begin(), cheapestEdge.end(), NULL_EDGE);
 
         for (int ind = 0; ind < graph.edges.size(); ++ind)
         {
             const Edge &edge = graph.edges[ind];
-            int pivot1 = findPivot(pivots, edge.source);
-            int pivot2 = findPivot(pivots, edge.target);
+            int pivot1 = findPivotSafely(pivots, edge.source);
+            int pivot2 = findPivotSafely(pivots, edge.target);
 
             if (pivot1 != pivot2)
             {

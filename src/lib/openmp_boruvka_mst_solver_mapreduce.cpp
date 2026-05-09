@@ -1,4 +1,4 @@
-#include "openmp_boruvka_mst_solver.hpp"
+#include "openmp_boruvka_mst_solver_mapreduce.hpp"
 
 #include <omp.h>
 #include "graph.hpp"
@@ -57,7 +57,8 @@ static void uniteRoots(std::vector<int> &pivots, std::vector<int> &sizes, int ro
     sizes[root1] += sizes[root2];
 }
 
-void OpenMPBoruvkaMSTSolver::calculateMST(const Graph &graph, Graph &mst, ExperimentSetup &experimentSetup) const
+void OpenMPBoruvkaMSTSolverMapReduce::calculateMST(
+    const Graph &graph, Graph &mst, ExperimentSetup &experimentSetup) const
 {
     int ompThreadsNum = omp_get_max_threads();
     int threadsNum = ompThreadsNum == 0 ? 1 : ompThreadsNum;
@@ -75,10 +76,9 @@ void OpenMPBoruvkaMSTSolver::calculateMST(const Graph &graph, Graph &mst, Experi
 
     while (treesNum > 1)
     {
-        std::fill(cheapestEdge.begin(), cheapestEdge.end(), NULL_EDGE);
-
         experimentSetup.edgePhaseTimer.start();
 
+        std::fill(cheapestEdge.begin(), cheapestEdge.end(), NULL_EDGE);
         for (std::vector<int> &vec: threadLocal) { std::fill(vec.begin(), vec.end(), NULL_EDGE); }
 
         #pragma omp parallel for schedule(static)

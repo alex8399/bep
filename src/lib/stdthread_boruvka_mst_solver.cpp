@@ -78,10 +78,9 @@ void StdThreadBoruvkaMSTSolver::calculateMST(const Graph &graph, Graph &mst, Exp
 
     while (treesNum > 1)
     {
-        std::fill(cheapestEdge.begin(), cheapestEdge.end(), NULL_EDGE);
-
         experimentSetup.edgePhaseTimer.start();
 
+        std::fill(cheapestEdge.begin(), cheapestEdge.end(), NULL_EDGE);
         for (std::vector<int> &vec: threadLocal) { std::fill(vec.begin(), vec.end(), NULL_EDGE); }
 
         auto scanEdgesWorker = [&](int tid)
