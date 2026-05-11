@@ -5,6 +5,7 @@
 #include "openmp_boruvka_mst_solver_mapreduce.hpp"
 #include "openmp_boruvka_mst_solver_mutex.hpp"
 #include "stdthread_boruvka_mst_solver.hpp"
+#include "opencl_boruvka_mst_solver.hpp"
 #include "cuda_boruvka_mst_solver.hpp"
 #include <stdexcept>
 #include "experiment_setup.hpp"
@@ -112,6 +113,7 @@ using SolverTypes = ::testing::Types<
     OpenMPBoruvkaMSTSolverMapReduce,
     OpenMPBoruvkaMSTSolverMutex,
     StdThreadBoruvkaMSTSolver,
+    OpenCLBoruvkaMSTSolver,
     CudaBoruvkaMSTSolver>;
 
 TYPED_TEST_SUITE(BoruvkaMSTTestFixture, SolverTypes);

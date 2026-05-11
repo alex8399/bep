@@ -1,10 +1,11 @@
 CC = g++
-NVCC = /usr/local/cuda-13.2/bin/nvcc
+NVCC = nvcc
 
 CFLAGS = -Iinc -O2 -std=c++17
 OPENMPFLAGS = -fopenmp
 STDTHREADFLAGS = -pthread
-CUDAFLAGS = -L/usr/local/cuda-13.2/lib64 -lcudart -Wl,-rpath,/usr/local/cuda-13.2/lib64
+CUDAFLAGS = -L/usr/local/cuda/lib64 -lcudart -Wl,-rpath,/usr/local/cuda/lib64
+OPENCLFLAGS = -lOpenCL
 GTESTGLAGS = -L/usr/lib -lgtest -lgtest_main
 
 BLD_DIR = bld
@@ -34,9 +35,10 @@ ${TARGET_DIR}/experiment.exe: \
 	${BLD_DIR}/openmp_boruvka_mst_solver_mapreduce.o \
 	${BLD_DIR}/openmp_boruvka_mst_solver_mutex.o \
 	${BLD_DIR}/stdthread_boruvka_mst_solver.o \
+	${BLD_DIR}/opencl_boruvka_mst_solver.o \
 	${BLD_DIR}/cuda_boruvka_mst_solver.o \
 	${BLD_DIR}/timer.o
-	${CC} $^ ${CUDAFLAGS} ${OPENMPFLAGS} ${STDTHREADFLAGS} -o $@
+	${CC} $^ ${CUDAFLAGS} ${OPENMPFLAGS} ${STDTHREADFLAGS} ${OPENCLFLAGS} -o $@
 
 ${BLD_DIR}/base_boruvka_mst_solver.o: ${LIB_DIR}/base_boruvka_mst_solver.cpp
 	${CC} ${CFLAGS} -c $< -o $@
@@ -65,6 +67,9 @@ ${BLD_DIR}/openmp_boruvka_mst_solver_mutex.o: ${LIB_DIR}/openmp_boruvka_mst_solv
 ${BLD_DIR}/stdthread_boruvka_mst_solver.o: ${LIB_DIR}/stdthread_boruvka_mst_solver.cpp
 	${CC} ${CFLAGS} ${STDTHREADFLAGS} -c $< -o $@
 
+${BLD_DIR}/opencl_boruvka_mst_solver.o: ${LIB_DIR}/opencl_boruvka_mst_solver.cpp
+	${CC} ${CFLAGS} -c $< ${OPENCLFLAGS} -o $@
+
 ${BLD_DIR}/cuda_boruvka_mst_solver.o: ${LIB_DIR}/cuda_boruvka_mst_solver.cu
 	${NVCC} ${CFLAGS} -c lib/cuda_boruvka_mst_solver.cu -o bld/cuda_boruvka_mst_solver.o
 
@@ -86,9 +91,10 @@ ${TARGET_DIR}/tst_experiment.exe: \
 	${BLD_DIR}/openmp_boruvka_mst_solver_mapreduce.o \
 	${BLD_DIR}/openmp_boruvka_mst_solver_mutex.o \
 	${BLD_DIR}/stdthread_boruvka_mst_solver.o \
+	${BLD_DIR}/opencl_boruvka_mst_solver.o \
 	${BLD_DIR}/cuda_boruvka_mst_solver.o \
 	${BLD_DIR}/timer.o
-	${CC} $^ ${CUDAFLAGS} ${OPENMPFLAGS} ${STDTHREADFLAGS} ${GTESTGLAGS}  -o $@
+	${CC} $^ ${CUDAFLAGS} ${OPENMPFLAGS} ${STDTHREADFLAGS} ${GTESTGLAGS} ${OPENCLFLAGS}  -o $@
 
 ${BLD_DIR}/tst_boruvka_mst_solver.o: ${TST_DIR}/tst_boruvka_mst_solver.cpp
 	${CC} ${CFLAGS} -c $< -o $@

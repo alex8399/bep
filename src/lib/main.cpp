@@ -6,6 +6,7 @@
 #include "openmp_boruvka_mst_solver_mapreduce.hpp"
 #include "openmp_boruvka_mst_solver_mutex.hpp"
 #include "stdthread_boruvka_mst_solver.hpp"
+#include "opencl_boruvka_mst_solver.hpp"
 #include "cuda_boruvka_mst_solver.hpp"
 #include <memory>
 #include "experiment.hpp"
@@ -20,6 +21,7 @@ const std::string OPENMP_BORUVKA_TYPE_MAPREDUCE = "OPENMP-MAPREDUCE";
 const std::string OPENMP_BORUVKA_TYPE_MUTEX = "OPENMP-MUTEX";
 const std::string STDTHREAD_BORUVKA_TYPE = "STDTHREAD";
 const std::string CUDA_BORUVKA_TYPE = "CUDA";
+const std::string OPENCL_BORUVKA_TYPE = "OPENCL";
 
 
 static std::unique_ptr<BaseBoruvkaMSTSolver> createBoruvkaMSTSolver(const std::string &arg);
@@ -42,6 +44,10 @@ static std::unique_ptr<BaseBoruvkaMSTSolver> createBoruvkaMSTSolver(const std::s
     else if (arg == OPENMP_BORUVKA_TYPE_MUTEX)
     {
         return std::make_unique<OpenMPBoruvkaMSTSolverMutex>();
+    }
+    else if (arg == OPENCL_BORUVKA_TYPE)
+    {
+        return std::make_unique<OpenCLBoruvkaMSTSolver>();
     }
     else if (arg == STDTHREAD_BORUVKA_TYPE)
     {
