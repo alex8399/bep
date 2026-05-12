@@ -74,7 +74,7 @@ $(BLD_DIR)/opencl_boruvka_mst_solver.o: $(LIB_DIR)/opencl_boruvka_mst_solver.cpp
 	$(CXX) $(CXXFLAGS) -c $< $(OPENCLFLAGS) -o $@
 
 $(BLD_DIR)/cuda_boruvka_mst_solver.o: $(LIB_DIR)/cuda_boruvka_mst_solver.cu
-	$(NVCC) -ccbin "$(CXX)" $(CXXFLAGS) -c $< $(CUDAFLAGS) -o $@
+	$(NVCC) $(CXXFLAGS) -c $< $(CUDAFLAGS) -o $@
 
 $(BLD_DIR)/timer.o: $(LIB_DIR)/timer.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
