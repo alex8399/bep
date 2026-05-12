@@ -1,35 +1,48 @@
+#if !defined(GCC) && !defined(NVCC)
+    #error "Unknown compiler"
+#endif
+
 #include <stdexcept>
 #include <string>
 #include "base_boruvka_mst_solver.hpp"
-#include "sequential_boruvka_mst_solver_findpivot.hpp"
-#include "sequential_boruvka_mst_solver_findpivotsafely.hpp"
-#include "openmp_boruvka_mst_solver_mapreduce.hpp"
-#include "openmp_boruvka_mst_solver_mutex.hpp"
-#include "stdthread_boruvka_mst_solver.hpp"
-#include "opencl_boruvka_mst_solver.hpp"
-#include "cuda_boruvka_mst_solver.hpp"
 #include <memory>
 #include "experiment.hpp"
 #include <iostream>
 
+#ifdef GCC
+    #include "sequential_boruvka_mst_solver_findpivot.hpp"
+    #include "sequential_boruvka_mst_solver_findpivotsafely.hpp"
+    #include "openmp_boruvka_mst_solver_mapreduce.hpp"
+    #include "openmp_boruvka_mst_solver_mutex.hpp"
+    #include "stdthread_boruvka_mst_solver.hpp"
+    #include "opencl_boruvka_mst_solver.hpp"
+#elif NVCC
+    #include "cuda_boruvka_mst_solver.hpp"
+#endif
+
 constexpr int OK = 0;
 constexpr int ERROR = 1;
 
-const std::string SEQUENTIAL_BORUVKA_TYPE_FINDPIVOT = "SEQ-FINDPIVOT";
-const std::string SEQUENTIAL_BORUVKA_TYPE_FINDPIVOTSAFELY = "SEQ-FINDPIVOTSAFELY";
-const std::string OPENMP_BORUVKA_TYPE_MAPREDUCE = "OPENMP-MAPREDUCE";
-const std::string OPENMP_BORUVKA_TYPE_MUTEX = "OPENMP-MUTEX";
-const std::string STDTHREAD_BORUVKA_TYPE = "STDTHREAD";
-const std::string CUDA_BORUVKA_TYPE = "CUDA";
-const std::string OPENCL_BORUVKA_TYPE = "OPENCL";
-
+#ifdef GCC
+    const std::string SEQUENTIAL_BORUVKA_TYPE_FINDPIVOT = "SEQ-FINDPIVOT";
+    const std::string SEQUENTIAL_BORUVKA_TYPE_FINDPIVOTSAFELY = "SEQ-FINDPIVOTSAFELY";
+    const std::string OPENMP_BORUVKA_TYPE_MAPREDUCE = "OPENMP-MAPREDUCE";
+    const std::string OPENMP_BORUVKA_TYPE_MUTEX = "OPENMP-MUTEX";
+    const std::string STDTHREAD_BORUVKA_TYPE = "STDTHREAD";
+    const std::string OPENCL_BORUVKA_TYPE = "OPENCL";
+#elif NVCC
+    const std::string CUDA_BORUVKA_TYPE = "CUDA";
+#endif
 
 static std::unique_ptr<BaseBoruvkaMSTSolver> createBoruvkaMSTSolver(const std::string &arg);
 
-
 static std::unique_ptr<BaseBoruvkaMSTSolver> createBoruvkaMSTSolver(const std::string &arg)
 {
-    if (arg == SEQUENTIAL_BORUVKA_TYPE_FINDPIVOT)
+    if (false)
+    {
+    }
+    #ifdef GCC
+    else if (arg == SEQUENTIAL_BORUVKA_TYPE_FINDPIVOT)
     {
         return std::make_unique<SequentialBoruvkaMSTSolverWithFindPivot>();
     }
@@ -53,10 +66,12 @@ static std::unique_ptr<BaseBoruvkaMSTSolver> createBoruvkaMSTSolver(const std::s
     {
         return std::make_unique<StdThreadBoruvkaMSTSolver>();
     }
+    #elif NVCC
     else if (arg == CUDA_BORUVKA_TYPE)
     {
         return std::make_unique<CudaBoruvkaMSTSolver>();
     }
+    #endif
     else
     {
         throw std::invalid_argument(
@@ -64,7 +79,7 @@ static std::unique_ptr<BaseBoruvkaMSTSolver> createBoruvkaMSTSolver(const std::s
     }
 }
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     try
     {
@@ -83,7 +98,7 @@ int main(int argc, char* argv[])
 
         return OK;
     }
-    catch (const std::exception& e)
+    catch (const std::exception &e)
     {
         std::cerr << e.what() << std::endl;
         return ERROR;

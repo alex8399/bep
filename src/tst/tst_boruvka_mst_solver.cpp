@@ -1,14 +1,22 @@
+#if !defined(GCC) && !defined(NVCC)
+    #error "Unknown compiler"
+#endif
+
 #include <gtest/gtest.h>
 #include "graph.hpp"
-#include "sequential_boruvka_mst_solver_findpivotsafely.hpp"
-#include "sequential_boruvka_mst_solver_findpivot.hpp"
-#include "openmp_boruvka_mst_solver_mapreduce.hpp"
-#include "openmp_boruvka_mst_solver_mutex.hpp"
-#include "stdthread_boruvka_mst_solver.hpp"
-#include "opencl_boruvka_mst_solver.hpp"
-#include "cuda_boruvka_mst_solver.hpp"
 #include <stdexcept>
 #include "experiment_setup.hpp"
+
+#ifdef GCC
+    #include "sequential_boruvka_mst_solver_findpivot.hpp"
+    #include "sequential_boruvka_mst_solver_findpivotsafely.hpp"
+    #include "openmp_boruvka_mst_solver_mapreduce.hpp"
+    #include "openmp_boruvka_mst_solver_mutex.hpp"
+    #include "stdthread_boruvka_mst_solver.hpp"
+    #include "opencl_boruvka_mst_solver.hpp"
+#elif NVCC
+    #include "cuda_boruvka_mst_solver.hpp"
+#endif
 
 const Graph GRAPH_01{
     .verticesNum = 4,
@@ -106,15 +114,18 @@ class BoruvkaMSTTestFixture : public ::testing::Test
 protected:
     SolverType solver;
 };
-
+#ifdef GCC
 using SolverTypes = ::testing::Types<
     SequentialBoruvkaMSTSolverWithFindPivot,
     SequentialBoruvkaMSTSolverWithFindPivotSafely,
     OpenMPBoruvkaMSTSolverMapReduce,
     OpenMPBoruvkaMSTSolverMutex,
     StdThreadBoruvkaMSTSolver,
-    OpenCLBoruvkaMSTSolver,
+    OpenCLBoruvkaMSTSolver>;
+#elif NVCC
+using SolverTypes = ::testing::Types<
     CudaBoruvkaMSTSolver>;
+#endif
 
 TYPED_TEST_SUITE(BoruvkaMSTTestFixture, SolverTypes);
 
