@@ -1,18 +1,29 @@
-#if !defined(GCC)
-    #error "Only compiler GCC can be used"
+#if !defined(NVCC)
+    #error "Only compiler NVCC can be used"
 #endif
 
-#include <gtest/gtest.h>
 #include "graph.hpp"
 #include <stdexcept>
 #include "experiment_setup.hpp"
+#include <iostream>
+#include <cassert>
 
-#include "sequential_boruvka_mst_solver_findpivot.hpp"
-#include "sequential_boruvka_mst_solver_findpivotsafely.hpp"
-#include "openmp_boruvka_mst_solver_mapreduce.hpp"
-#include "openmp_boruvka_mst_solver_mutex.hpp"
-#include "stdthread_boruvka_mst_solver.hpp"
-#include "opencl_boruvka_mst_solver.hpp"
+#include "cuda_boruvka_mst_solver.hpp"
+
+#define EXPECT_EQ(a, b) do { \
+    assert(a == b);    \
+} while(0)
+
+#define EXPECT_THROW_ANY(statement)        \
+    do {                                   \
+        bool caught = false;               \
+        try {                              \
+            statement;                     \
+        } catch (...) {                    \
+            caught = true;                 \
+        }                                  \
+        assert(caught);  \
+    } while(0)
 
 const Graph GRAPH_01{
     .verticesNum = 4,
@@ -101,100 +112,105 @@ static void expectEqualGraphs(const Graph &graph1, const Graph &graph2)
         equal = found ? equal : false;
     }
 
-    EXPECT_TRUE(equal);
+    EXPECT_EQ(equal, true);
 }
 
-template <typename SolverType>
-class BoruvkaMSTTestFixture : public ::testing::Test
-{
-protected:
-    SolverType solver;
-};
 
-using SolverTypes = ::testing::Types<
-    SequentialBoruvkaMSTSolverWithFindPivot,
-    SequentialBoruvkaMSTSolverWithFindPivotSafely,
-    OpenMPBoruvkaMSTSolverMapReduce,
-    OpenMPBoruvkaMSTSolverMutex,
-    StdThreadBoruvkaMSTSolver,
-    OpenCLBoruvkaMSTSolver>;
-
-TYPED_TEST_SUITE(BoruvkaMSTTestFixture, SolverTypes);
-
-TYPED_TEST(BoruvkaMSTTestFixture, Test01)
+void test01()
 {
     Graph mst;
     ExperimentSetup experimentSetup;
+    CudaBoruvkaMSTSolver solver;
 
-    EXPECT_NO_THROW(this->solver.calculateMST(GRAPH_01, mst, experimentSetup));
+    solver.calculateMST(GRAPH_01, mst, experimentSetup);
 
     expectEqualGraphs(mst, EXPECTED_MST_01);
 }
 
-TYPED_TEST(BoruvkaMSTTestFixture, Test02)
+void test02()
 {
     Graph mst;
     ExperimentSetup experimentSetup;
+    CudaBoruvkaMSTSolver solver;
 
-    EXPECT_NO_THROW(this->solver.calculateMST(GRAPH_02, mst, experimentSetup));
+    solver.calculateMST(GRAPH_02, mst, experimentSetup);
 
     expectEqualGraphs(mst, EXPECTED_MST_02);
 }
 
-TYPED_TEST(BoruvkaMSTTestFixture, Test03)
+void test03()
 {
     Graph mst;
     ExperimentSetup experimentSetup;
+    CudaBoruvkaMSTSolver solver;
 
-    EXPECT_NO_THROW(this->solver.calculateMST(GRAPH_03, mst, experimentSetup));
+    solver.calculateMST(GRAPH_03, mst, experimentSetup);
 
     expectEqualGraphs(mst, EXPECTED_MST_03);
 }
 
-TYPED_TEST(BoruvkaMSTTestFixture, Test04)
+void test04()
 {
     Graph mst;
     ExperimentSetup experimentSetup;
+    CudaBoruvkaMSTSolver solver;
 
-    EXPECT_NO_THROW(this->solver.calculateMST(GRAPH_04, mst, experimentSetup));
+    solver.calculateMST(GRAPH_04, mst, experimentSetup);
 
     expectEqualGraphs(mst, EXPECTED_MST_04);
 }
 
-TYPED_TEST(BoruvkaMSTTestFixture, Test05)
+void test05()
 {
     Graph mst;
     ExperimentSetup experimentSetup;
+    CudaBoruvkaMSTSolver solver;
 
-    EXPECT_NO_THROW(this->solver.calculateMST(GRAPH_05, mst, experimentSetup));
+    solver.calculateMST(GRAPH_05, mst, experimentSetup);
 
     expectEqualGraphs(mst, EXPECTED_MST_05);
 }
 
-TYPED_TEST(BoruvkaMSTTestFixture, Test06)
+void test06()
 {
     Graph mst;
     ExperimentSetup experimentSetup;
+    CudaBoruvkaMSTSolver solver;
 
-    EXPECT_NO_THROW(this->solver.calculateMST(GRAPH_06, mst, experimentSetup));
+    solver.calculateMST(GRAPH_06, mst, experimentSetup);
 
     expectEqualGraphs(mst, EXPECTED_MST_06);
 }
 
-TYPED_TEST(BoruvkaMSTTestFixture, Test07)
+void test07()
 {
     Graph mst;
     ExperimentSetup experimentSetup;
+    CudaBoruvkaMSTSolver solver;
 
-    EXPECT_NO_THROW(this->solver.calculateMST(GRAPH_07, mst, experimentSetup));
+    solver.calculateMST(GRAPH_07, mst, experimentSetup);
 
     expectEqualGraphs(mst, EXPECTED_MST_07);
 }
 
-TYPED_TEST(BoruvkaMSTTestFixture, NotConnectedGraph)
+void test08()
 {
     Graph mst;
     ExperimentSetup experimentSetup;
+    CudaBoruvkaMSTSolver solver;
 
-    EXPECT_THROW(this->solver.calculateMST(GRAPH_NOT_CONNECTED, mst, experimentSetup), std::runtime_error);
+    EXPECT_THROW_ANY(solver.calculateMST(GRAPH_NOT_CONNECTED, mst, experimentSetup));
+}
+
+int main() {
+    test01();
+    test02();
+    test03();
+    test04();
+    test05();
+    test06();
+    test07();
+    test08();
+
+    std::cout << "All test are successfull" << std::endl;
 }

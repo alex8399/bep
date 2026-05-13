@@ -7,7 +7,9 @@ BLD_DIR = bld
 TST_DIR = tst
 UTILS_DIR = utils
 
-CXXFLAGS = -I $(INC_DIR) -O2 -std=c++17
+CXXFLAGS = -I $(INC_DIR) -O2 -std=c++20
+NVCCFLAGS = $(CXXFLAGS)
+
 OPENMPFLAGS = -fopenmp
 STDTHREADFLAGS = -pthread
 OPENCLFLAGS = -I "D:\Programs\Nvidia-toolkit\include" -lOpenCL -L "D:\Programs\Nvidia-toolkit\lib\x64"
@@ -15,7 +17,13 @@ CUDAFLAGS = -L"D:\Programs\Nvidia-toolkit\lib\x64" -lcudart
 
 GTESTFLAGS = -lgtest -lgtest_main -pthread
 
-.PHONY: build clean opencl_info
+.PHONY: build clean opencl_info run_tests
+
+run_tests:
+	make clean
+	make build
+	$(BLD_DIR)/tst_experiment.exe
+	$(BLD_DIR)/tst_experiment_nvcc.exe
 
 clean:
 	del \Q $(BLD_DIR)\*.o $(BLD_DIR)\*.exe $(BLD_DIR)\*.out $(TST_DIR)\tmp\*.tmp
@@ -81,13 +89,13 @@ $(BLD_DIR)/tst_experiment.exe: \
 	$(BLD_DIR)/base_boruvka_mst_solver.o \
 	$(BLD_DIR)/experiment.o \
 	$(BLD_DIR)/file_facilities.o \
+	$(BLD_DIR)/timer.o \
 	$(BLD_DIR)/sequential_boruvka_mst_solver_findpivotsafely.o \
 	$(BLD_DIR)/sequential_boruvka_mst_solver_findpivot.o \
 	$(BLD_DIR)/openmp_boruvka_mst_solver_mapreduce.o \
 	$(BLD_DIR)/openmp_boruvka_mst_solver_mutex.o \
 	$(BLD_DIR)/stdthread_boruvka_mst_solver.o \
-	$(BLD_DIR)/opencl_boruvka_mst_solver.o \
-	$(BLD_DIR)/timer.o
+	$(BLD_DIR)/opencl_boruvka_mst_solver.o
 	$(CXX) $^ $(OPENMPFLAGS) $(STDTHREADFLAGS) $(OPENCLFLAGS) $(GTESTFLAGS) -o $@
 
 $(BLD_DIR)/tst_boruvka_mst_solver.o: $(TST_DIR)/tst_boruvka_mst_solver.cpp
@@ -109,19 +117,31 @@ $(BLD_DIR)/experiment_nvcc.exe: \
 	$(NVCC) $^ $(CUDAFLAGS) -o $@
 
 $(BLD_DIR)/cuda_boruvka_mst_solver_nvcc.o: $(LIB_DIR)/cuda_boruvka_mst_solver.cu
-	$(NVCC) $(CXXFLAGS) -c $< $(CUDAFLAGS) -o $@
+	$(NVCC) $(NVCCFLAGS) $(CUDAFLAGS) -c $< -o $@
 
 $(BLD_DIR)/base_boruvka_mst_solver_nvcc.o: $(LIB_DIR)/base_boruvka_mst_solver.cpp
-	$(NVCC) $(CXXFLAGS) -c $< -o $@
+	$(NVCC) $(NVCCFLAGS) -c $< -o $@
 
 $(BLD_DIR)/experiment_nvcc.o: $(LIB_DIR)/experiment.cpp
-	$(NVCC) $(CXXFLAGS) -c $< -o $@
+	$(NVCC) $(NVCCFLAGS) -c $< -o $@
 
 $(BLD_DIR)/file_facilities_nvcc.o: $(LIB_DIR)/file_facilities.cpp
-	$(NVCC) $(CXXFLAGS) -c $< -o $@
+	$(NVCC) $(NVCCFLAGS) -c $< -o $@
 
 $(BLD_DIR)/timer_nvcc.o: $(LIB_DIR)/timer.cpp
-	$(NVCC) $(CXXFLAGS) -c $< -o $@
+	$(NVCC) $(NVCCFLAGS) -c $< -o $@
 
 $(BLD_DIR)/main_nvcc.o: $(LIB_DIR)/main.cpp
-	$(NVCC) $(CXXFLAGS) -c $< -o $@
+	$(NVCC) $(NVCCFLAGS) -c $< -o $@
+
+$(BLD_DIR)/tst_experiment_nvcc.exe: \
+	$(BLD_DIR)/tst_boruvka_mst_solver_nvcc.o \
+	$(BLD_DIR)/base_boruvka_mst_solver_nvcc.o \
+	$(BLD_DIR)/experiment_nvcc.o \
+	$(BLD_DIR)/file_facilities_nvcc.o \
+	$(BLD_DIR)/timer_nvcc.o \
+	$(BLD_DIR)/cuda_boruvka_mst_solver_nvcc.o
+	$(NVCC) $^ $(CUDAFLAGS) -o $@
+
+$(BLD_DIR)/tst_boruvka_mst_solver_nvcc.o: $(TST_DIR)/tst_boruvka_mst_solver_nvcc.cpp
+	$(NVCC) $(NVCCFLAGS) $(CUDAFLAGS) -c $< -o $@
