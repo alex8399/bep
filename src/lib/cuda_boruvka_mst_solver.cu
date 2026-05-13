@@ -109,7 +109,7 @@ static inline void uniteRootsHost(std::vector<int> &pivots, std::vector<int> &si
     sizes[root1] += sizes[root2];
 }
 
-void CudaBoruvkaMSTSolver::calculateMST(const Graph &graph, Graph &mst, ExperimentSetup &experimentSetup) const
+void CudaBoruvkaMSTSolver::calculateMST(const Graph &graph, Graph &mst, ExperimentSetup &experimentSetup)
 {
     mst.verticesNum = graph.verticesNum;
     mst.edges.reserve(graph.verticesNum > 0 ? graph.verticesNum - 1 : 0);

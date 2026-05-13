@@ -8,10 +8,7 @@
 class CudaBoruvkaMSTSolver : public BaseBoruvkaMSTSolver
 {
 public:
-    CudaBoruvkaMSTSolver() = default;
-    explicit CudaBoruvkaMSTSolver(int blockSize) : m_blockSize(blockSize) {}
-
-    void calculateMST(const Graph& graph, Graph& mst, ExperimentSetup &experimentSetup) const override;
+    void calculateMST(const Graph& graph, Graph& mst, ExperimentSetup &experimentSetup) override;
 private:
     int m_blockSize = 256;
 };

@@ -42,8 +42,7 @@ static void uniteRoots(std::vector<int> &pivots, std::vector<int> &sizes, int ro
     sizes[root1] += sizes[root2];
 }
 
-void SequentialBoruvkaMSTSolverWithFindPivot::calculateMST(
-    const Graph &graph, Graph &mst, ExperimentSetup &experimentSetup) const
+void SequentialBoruvkaMSTSolverWithFindPivot::calculateMST(const Graph &graph, Graph &mst, ExperimentSetup &experimentSetup)
 {
     mst.verticesNum = graph.verticesNum;
     mst.edges.reserve(graph.verticesNum > 0 ? graph.verticesNum - 1 : 0);

@@ -66,7 +66,7 @@ $(BLD_DIR)/timer.o: $(LIB_DIR)/timer.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(BLD_DIR)/main.o: $(LIB_DIR)/main.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(OPENCLFLAGS) $(CXXFLAGS) -c $< -o $@
 
 $(BLD_DIR)/sequential_boruvka_mst_solver_findpivot.o: $(LIB_DIR)/sequential_boruvka_mst_solver_findpivot.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
@@ -103,7 +103,7 @@ $(BLD_DIR)/tst_experiment.exe: \
 	$(CXX) $^ $(OPENMPFLAGS) $(STDTHREADFLAGS) $(OPENCLFLAGS) $(GTESTFLAGS) -o $@
 
 $(BLD_DIR)/tst_boruvka_mst_solver.o: $(TST_DIR)/tst_boruvka_mst_solver.cpp
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< $(OPENCLFLAGS) -o $@
 
 $(BLD_DIR)/tst_file_facilities.o: $(TST_DIR)/tst_file_facilities.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@

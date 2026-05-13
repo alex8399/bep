@@ -62,15 +62,18 @@ static std::unique_ptr<BaseBoruvkaMSTSolver> createBoruvkaMSTSolver(const std::s
     }
     else if (arg == OPENCL_NVIDIAGPU_BORUVKA_TYPE)
     {
-        return std::make_unique<OpenCLBoruvkaMSTSolver>("NVIDIA CUDA");
+        std::string deviceName = "NVIDIA CUDA";
+        return std::make_unique<OpenCLBoruvkaMSTSolver>(deviceName);
     }
     else if (arg == OPENCL_INTELGPU_BORUVKA_TYPE)
     {
-        return std::make_unique<OpenCLBoruvkaMSTSolver>("Intel(R) OpenCL HD Graphics");
+        std::string deviceName = "Intel(R) OpenCL HD Graphics";
+        return std::make_unique<OpenCLBoruvkaMSTSolver>(deviceName);
     }
     else if (arg == OPENCL_CPU_BORUVKA_TYPE)
     {
-        return std::make_unique<OpenCLBoruvkaMSTSolver>("Intel(R) OpenCL");
+        std::string deviceName = "Intel(R) OpenCL";
+        return std::make_unique<OpenCLBoruvkaMSTSolver>(deviceName);
     }
     else if (arg == STDTHREAD_BORUVKA_TYPE)
     {

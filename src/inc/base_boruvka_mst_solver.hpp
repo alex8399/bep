@@ -7,7 +7,7 @@
 class BaseBoruvkaMSTSolver
 {
 public:
-    virtual void calculateMST(const Graph& graph, Graph& mst, ExperimentSetup &experimentSetup) const = 0;
+    virtual void calculateMST(const Graph& graph, Graph& mst, ExperimentSetup &experimentSetup) = 0;
     virtual ~BaseBoruvkaMSTSolver() = default;
 };
 

@@ -7,7 +7,6 @@
 #define CL_HPP_TARGET_OPENCL_VERSION 120
 #define CL_HPP_ENABLE_EXCEPTIONS
 
-
 #include <CL/opencl.hpp>
 
 #include <vector>
@@ -108,8 +107,76 @@ __kernel void findCheapestEdges(
     }
 }
 
-void OpenCLBoruvkaMSTSolver::calculateMST(const Graph &graph, Graph &mst,
-                                          ExperimentSetup &experimentSetup) const
+OpenCLBoruvkaMSTSolver::OpenCLBoruvkaMSTSolver(std::optional<std::string> platformName)
+{
+    // OpenCL setup
+    std::vector<cl::Platform> platforms;
+    cl::Platform::get(&platforms);
+
+    bool deviceFound = false;
+
+    for (const auto &platform : platforms)
+    {
+        if (!platformName.has_value() || platform.getInfo<CL_PLATFORM_NAME>() == platformName.value())
+        {
+            std::vector<cl::Device> devices;
+            try
+            {
+                platform.getDevices(CL_DEVICE_TYPE_ALL, &devices);
+            }
+            catch (const cl::Error &)
+            {
+                continue;
+            }
+            if (!devices.empty())
+            {
+                m_device = devices.front();
+                deviceFound = true;
+                break;
+            }
+        }
+    }
+
+    if (!deviceFound)
+    {
+        throw std::runtime_error("No OpenCL devices found");
+    }
+
+    // Verify 64-bit base atomics support (required by atom_min on ulong).
+    std::string extensions = m_device.getInfo<CL_DEVICE_EXTENSIONS>();
+    if (extensions.find("cl_khr_int64_base_atomics") == std::string::npos)
+    {
+        throw std::runtime_error(
+            "OpenCL device does not support cl_khr_int64_base_atomics");
+    }
+
+    try
+    {
+        m_context = cl::Context(m_device);
+        m_queue = cl::CommandQueue(m_context, m_device);
+ 
+        m_program = cl::Program(m_context, std::string(kBoruvkaKernelSource));
+        try
+        {
+            m_program.build({m_device});
+        }
+        catch (const cl::Error &)
+        {
+            std::string log =
+                m_program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(m_device);
+            throw std::runtime_error("OpenCL program build failed:\n" + log);
+        }
+ 
+        m_kernel = cl::Kernel(m_program, "findCheapestEdges");
+    }
+    catch (const cl::Error &e)
+    {
+        throw std::runtime_error(std::string("OpenCL setup error: ") + e.what() +
+                                 " (code " + std::to_string(e.err()) + ")");
+    }
+}
+
+void OpenCLBoruvkaMSTSolver::calculateMST(const Graph &graph, Graph &mst, ExperimentSetup &experimentSetup)
 {
     mst.verticesNum = graph.verticesNum;
     mst.edges.reserve(graph.verticesNum > 0 ? graph.verticesNum - 1 : 0);
@@ -134,75 +201,16 @@ void OpenCLBoruvkaMSTSolver::calculateMST(const Graph &graph, Graph &mst,
 
     try
     {
-        // OpenCL setup
-        std::vector<cl::Platform> platforms;
-        cl::Platform::get(&platforms);
-
-        cl::Device device;
-        bool deviceFound = false;
-
-        for (const auto &platform : platforms)
-        {
-            if (!m_platformName.has_value() || platform.getInfo<CL_PLATFORM_NAME>() == m_platformName.value())
-            {
-                std::vector<cl::Device> devices;
-                try
-                {
-                    platform.getDevices(CL_DEVICE_TYPE_ALL, &devices);
-                }
-                catch (const cl::Error &)
-                {
-                    continue;
-                }
-                if (!devices.empty())
-                {
-                    device = devices.front();
-                    deviceFound = true;
-                    break;
-                }
-            }
-        }
-
-        if (!deviceFound)
-        {
-            throw std::runtime_error("No OpenCL devices found");
-        }
-
-        // Verify 64-bit base atomics support (required by atom_min on ulong).
-        std::string extensions = device.getInfo<CL_DEVICE_EXTENSIONS>();
-        if (extensions.find("cl_khr_int64_base_atomics") == std::string::npos)
-        {
-            throw std::runtime_error(
-                "OpenCL device does not support cl_khr_int64_base_atomics");
-        }
-
-        cl::Context context(device);
-        cl::CommandQueue queue(context, device);
-
-        // Build the program from the embedded source.
-        cl::Program program(context, std::string(kBoruvkaKernelSource));
-        try
-        {
-            program.build({device});
-        }
-        catch (const cl::Error &)
-        {
-            std::string log = program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device);
-            throw std::runtime_error("OpenCL program build failed:\n" + log);
-        }
-
-        cl::Kernel kernel(program, "findCheapestEdges");
-
         // Device buffers
-        cl::Buffer dSources(context, CL_MEM_READ_ONLY, sizeof(int) * E);
-        cl::Buffer dTargets(context, CL_MEM_READ_ONLY, sizeof(int) * E);
-        cl::Buffer dWeights(context, CL_MEM_READ_ONLY, sizeof(int) * E);
-        cl::Buffer dPivots(context, CL_MEM_READ_ONLY, sizeof(int) * V);
-        cl::Buffer dCheapest(context, CL_MEM_READ_WRITE, sizeof(cl_ulong) * V);
+        cl::Buffer dSources(m_context, CL_MEM_READ_ONLY, sizeof(int) * E);
+        cl::Buffer dTargets(m_context, CL_MEM_READ_ONLY, sizeof(int) * E);
+        cl::Buffer dWeights(m_context, CL_MEM_READ_ONLY, sizeof(int) * E);
+        cl::Buffer dPivots(m_context, CL_MEM_READ_ONLY, sizeof(int) * V);
+        cl::Buffer dCheapest(m_context, CL_MEM_READ_WRITE, sizeof(cl_ulong) * V);
 
-        queue.enqueueWriteBuffer(dSources, CL_FALSE, 0, sizeof(int) * E, hSources.data());
-        queue.enqueueWriteBuffer(dTargets, CL_FALSE, 0, sizeof(int) * E, hTargets.data());
-        queue.enqueueWriteBuffer(dWeights, CL_TRUE, 0, sizeof(int) * E, hWeights.data());
+        m_queue.enqueueWriteBuffer(dSources, CL_FALSE, 0, sizeof(int) * E, hSources.data());
+        m_queue.enqueueWriteBuffer(dTargets, CL_FALSE, 0, sizeof(int) * E, hTargets.data());
+        m_queue.enqueueWriteBuffer(dWeights, CL_TRUE, 0, sizeof(int) * E, hWeights.data());
 
         // Host-side union-find state
         std::vector<int> pivots(V);
@@ -211,8 +219,7 @@ void OpenCLBoruvkaMSTSolver::calculateMST(const Graph &graph, Graph &mst,
         std::vector<cl_ulong> hCheapest(V);
 
         const std::size_t blockSize = static_cast<std::size_t>(m_blockSize);
-        const std::size_t globalSize =
-            ((static_cast<std::size_t>(E) + blockSize - 1) / blockSize) * blockSize;
+        const std::size_t globalSize = ((static_cast<std::size_t>(E) + blockSize - 1) / blockSize) * blockSize;
 
         int treesNum = V;
 
@@ -221,26 +228,26 @@ void OpenCLBoruvkaMSTSolver::calculateMST(const Graph &graph, Graph &mst,
             experimentSetup.edgePhaseTimer.start();
 
             // Push current pivots to device.
-            queue.enqueueWriteBuffer(dPivots, CL_FALSE, 0, sizeof(int) * V, pivots.data());
+            m_queue.enqueueWriteBuffer(dPivots, CL_FALSE, 0, sizeof(int) * V, pivots.data());
 
             // Reset cheapest buffer to all 0xFF bytes (== PACKED_SENTINEL).
             cl_uchar pattern = 0xFF;
-            queue.enqueueFillBuffer(dCheapest, pattern, 0, sizeof(cl_ulong) * V);
+            m_queue.enqueueFillBuffer(dCheapest, pattern, 0, sizeof(cl_ulong) * V);
 
             // Set kernel arguments and launch.
-            kernel.setArg(0, dSources);
-            kernel.setArg(1, dTargets);
-            kernel.setArg(2, dWeights);
-            kernel.setArg(3, E);
-            kernel.setArg(4, dPivots);
-            kernel.setArg(5, dCheapest);
+            m_kernel.setArg(0, dSources);
+            m_kernel.setArg(1, dTargets);
+            m_kernel.setArg(2, dWeights);
+            m_kernel.setArg(3, E);
+            m_kernel.setArg(4, dPivots);
+            m_kernel.setArg(5, dCheapest);
 
-            queue.enqueueNDRangeKernel(kernel, cl::NullRange,
+            m_queue.enqueueNDRangeKernel(m_kernel, cl::NullRange,
                                        cl::NDRange(globalSize),
                                        cl::NDRange(blockSize));
 
             // Read results back (blocking — also acts as a sync point).
-            queue.enqueueReadBuffer(dCheapest, CL_TRUE, 0,
+            m_queue.enqueueReadBuffer(dCheapest, CL_TRUE, 0,
                                     sizeof(cl_ulong) * V, hCheapest.data());
 
             experimentSetup.edgePhaseTimer.stop();

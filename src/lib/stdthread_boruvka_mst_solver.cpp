@@ -53,7 +53,7 @@ static void uniteRoots(std::vector<int> &pivots, std::vector<int> &sizes, int ro
     sizes[root1] += sizes[root2];
 }
 
-void StdThreadBoruvkaMSTSolver::calculateMST(const Graph &graph, Graph &mst, ExperimentSetup &experimentSetup) const
+void StdThreadBoruvkaMSTSolver::calculateMST(const Graph &graph, Graph &mst, ExperimentSetup &experimentSetup)
 {
     const int verticesNum = graph.verticesNum;
     const std::size_t edgesNum = graph.edges.size();

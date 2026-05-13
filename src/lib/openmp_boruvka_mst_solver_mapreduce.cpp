@@ -57,8 +57,7 @@ static void uniteRoots(std::vector<int> &pivots, std::vector<int> &sizes, int ro
     sizes[root1] += sizes[root2];
 }
 
-void OpenMPBoruvkaMSTSolverMapReduce::calculateMST(
-    const Graph &graph, Graph &mst, ExperimentSetup &experimentSetup) const
+void OpenMPBoruvkaMSTSolverMapReduce::calculateMST(const Graph &graph, Graph &mst, ExperimentSetup &experimentSetup)
 {
     int ompThreadsNum = omp_get_max_threads();
     int threadsNum = ompThreadsNum == 0 ? 1 : ompThreadsNum;

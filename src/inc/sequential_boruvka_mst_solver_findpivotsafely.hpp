@@ -8,7 +8,7 @@
 class SequentialBoruvkaMSTSolverWithFindPivotSafely : public BaseBoruvkaMSTSolver
 {
 public:
-    void calculateMST(const Graph& graph, Graph& mst, ExperimentSetup &experimentSetup) const override;
+    void calculateMST(const Graph& graph, Graph& mst, ExperimentSetup &experimentSetup) override;
 };
 
 #endif
