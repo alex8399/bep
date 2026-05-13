@@ -6,31 +6,35 @@ INC_DIR = inc
 BLD_DIR = bld
 TST_DIR = tst
 UTILS_DIR = utils
+NVIDIA_TOOLKIT_DIR = D:\Programs\Nvidia-toolkit
 
 CXXFLAGS = -I $(INC_DIR) -O2 -std=c++20
 NVCCFLAGS = $(CXXFLAGS)
 
 OPENMPFLAGS = -fopenmp
 STDTHREADFLAGS = -pthread
-OPENCLFLAGS = -I "D:\Programs\Nvidia-toolkit\include" -lOpenCL -L "D:\Programs\Nvidia-toolkit\lib\x64"
-CUDAFLAGS = -L"D:\Programs\Nvidia-toolkit\lib\x64" -lcudart
+OPENCLFLAGS = -I "$(NVIDIA_TOOLKIT_DIR)\include" -lOpenCL -L "$(NVIDIA_TOOLKIT_DIR)\lib\x64"
+CUDAFLAGS = -L"$(NVIDIA_TOOLKIT_DIR)\lib\x64" -lcudart
 
 GTESTFLAGS = -lgtest -lgtest_main -pthread
 
-.PHONY: build clean opencl_info run_tests
+.PHONY: build clean opencl_info run_tests opencl_info
 
 run_tests:
-	make clean
-	make build
 	$(BLD_DIR)/tst_experiment.exe
 	$(BLD_DIR)/tst_experiment_nvcc.exe
 
 clean:
-	del \Q $(BLD_DIR)\*.o $(BLD_DIR)\*.exe $(BLD_DIR)\*.out $(TST_DIR)\tmp\*.tmp
+	del /Q $(BLD_DIR)\*.o $(BLD_DIR)\*.exe $(BLD_DIR)\*.out $(TST_DIR)\tmp\*.tmp
 
-build: $(BLD_DIR)/experiment.exe $(BLD_DIR)/experiment_nvcc.exe $(BLD_DIR)/tst_experiment.exe $(BLD_DIR)/tst_experiment_nvcc.exe
+build: \
+	$(BLD_DIR)/experiment.exe \
+	$(BLD_DIR)/experiment_nvcc.exe \
+	$(BLD_DIR)/tst_experiment.exe \
+	$(BLD_DIR)/tst_experiment_nvcc.exe
 
 opencl_info: $(BLD_DIR)/opencl_info.exe
+	$(BLD_DIR)/opencl_info.exe
 
 $(BLD_DIR)/opencl_info.exe: $(UTILS_DIR)/opencl_info.cpp
 	$(CXX) $(CXXFLAGS) $< $(OPENCLFLAGS) -o $@

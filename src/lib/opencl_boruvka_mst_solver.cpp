@@ -137,35 +137,13 @@ void OpenCLBoruvkaMSTSolver::calculateMST(const Graph &graph, Graph &mst,
         // OpenCL setup
         std::vector<cl::Platform> platforms;
         cl::Platform::get(&platforms);
-        if (platforms.empty())
-        {
-            throw std::runtime_error("No OpenCL platforms found");
-        }
 
         cl::Device device;
         bool deviceFound = false;
+
         for (const auto &platform : platforms)
         {
-            std::vector<cl::Device> devices;
-            try
-            {
-                platform.getDevices(CL_DEVICE_TYPE_GPU, &devices);
-            }
-            catch (const cl::Error &)
-            {
-                continue;
-            }
-            if (!devices.empty())
-            {
-                device = devices.front();
-                deviceFound = true;
-                break;
-            }
-        }
-        if (!deviceFound)
-        {
-            // Fall back to any device type if no GPU is available.
-            for (const auto &platform : platforms)
+            if (!m_platformName.has_value() || platform.getInfo<CL_PLATFORM_NAME>() == m_platformName.value())
             {
                 std::vector<cl::Device> devices;
                 try
@@ -184,6 +162,7 @@ void OpenCLBoruvkaMSTSolver::calculateMST(const Graph &graph, Graph &mst,
                 }
             }
         }
+
         if (!deviceFound)
         {
             throw std::runtime_error("No OpenCL devices found");

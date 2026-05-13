@@ -17,6 +17,9 @@ int main()
         std::cout << "  Name:    " << platforms[i].getInfo<CL_PLATFORM_NAME>() << "\n";
         std::cout << "  Vendor:  " << platforms[i].getInfo<CL_PLATFORM_VENDOR>() << "\n";
         std::cout << "  Version: " << platforms[i].getInfo<CL_PLATFORM_VERSION>() << "\n";
+        std::cout << "  ICD Suffix: " << platforms[i].getInfo<CL_PLATFORM_ICD_SUFFIX_KHR>() << "\n";
+        std::cout << "  Profile:    " << platforms[i].getInfo<CL_PLATFORM_PROFILE>() << "\n";
+        // std::cout << "  Extensions: " << platforms[i].getInfo<CL_PLATFORM_EXTENSIONS>() << "\n";
 
         std::vector<cl::Device> devices;
         platforms[i].getDevices(CL_DEVICE_TYPE_ALL, &devices);
