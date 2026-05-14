@@ -212,5 +212,5 @@ int main() {
     test07();
     test08();
 
-    std::cout << "All tests are passed" << std::endl;
+    std::cout << "CUDA TESTS on NVCC: All tests are passed" << std::endl;
 }

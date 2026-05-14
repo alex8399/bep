@@ -68,7 +68,6 @@ void OpenMPBoruvkaMSTSolverMutex::calculateMST(const Graph &graph, Graph &mst, E
     std::vector<int> pivots(graph.verticesNum);
     std::iota(pivots.begin(), pivots.end(), 0);
     std::vector<int> sizes(graph.verticesNum, 1);
-    std::vector<std::vector<int>> threadLocal(threadsNum, std::vector<int>(graph.verticesNum, NULL_EDGE));
     std::vector<int> cheapestEdge(graph.verticesNum, NULL_EDGE);
 
     int treesNum = graph.verticesNum;

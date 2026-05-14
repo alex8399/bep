@@ -109,6 +109,40 @@ static inline void uniteRootsHost(std::vector<int> &pivots, std::vector<int> &si
     sizes[root1] += sizes[root2];
 }
 
+__global__ void warmupKernel(int *out)
+{
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    if (tid == 0)
+    {
+        *out = 42;
+    }
+}
+
+CudaBoruvkaMSTSolver::CudaBoruvkaMSTSolver()
+{
+    CUDA_CHECK(cudaFree(0));
+
+    int deviceCount = 0;
+    CUDA_CHECK(cudaGetDeviceCount(&deviceCount));
+    if (deviceCount == 0)
+    {
+        throw std::runtime_error("CUDA warmup error: no CUDA devices found");
+    }
+    CUDA_CHECK(cudaSetDevice(0));
+
+    int *dDummy = nullptr;
+    CUDA_CHECK(cudaMalloc(&dDummy, sizeof(int)));
+
+    warmupKernel<<<1, 32>>>(dDummy);
+    CUDA_CHECK(cudaGetLastError());
+
+    int hDummy = 0;
+    CUDA_CHECK(cudaMemcpy(&hDummy, dDummy, sizeof(int), cudaMemcpyDeviceToHost));
+
+    CUDA_CHECK(cudaDeviceSynchronize());
+    CUDA_CHECK(cudaFree(dDummy));
+}
+
 void CudaBoruvkaMSTSolver::calculateMST(const Graph &graph, Graph &mst, ExperimentSetup &experimentSetup)
 {
     mst.verticesNum = graph.verticesNum;

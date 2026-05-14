@@ -9,7 +9,7 @@ UTILS_DIR = utils
 NVIDIA_TOOLKIT_DIR = D:\Programs\Nvidia-toolkit
 
 CXXFLAGS = -I $(INC_DIR) -O2 -std=c++20
-NVCCFLAGS = $(CXXFLAGS)
+NVCCFLAGS = -I $(INC_DIR) -O2 -std=c++20 -arch=sm_75 -Xcompiler="/O2 /std:c++20"
 
 OPENMPFLAGS = -fopenmp
 STDTHREADFLAGS = -pthread
