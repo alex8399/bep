@@ -29,8 +29,7 @@ constexpr int ERROR = 1;
     const std::string OPENMP_MAPREDUCE_BORUVKA_TYPE = "OPENMP-MAPREDUCE";
     const std::string OPENMP_MUTEX_BORUVKA_TYPE = "OPENMP-MUTEX";
     const std::string STDTHREAD_BORUVKA_TYPE = "STDTHREAD";
-    const std::string OPENCL_NVIDIAGPU_BORUVKA_TYPE = "OPENCL-NVIDIAGPU";
-    const std::string OPENCL_INTELGPU_BORUVKA_TYPE = "OPENCL-INTELGPU";
+    const std::string OPENCL_GPU_BORUVKA_TYPE = "OPENCL-GPU";
     const std::string OPENCL_CPU_BORUVKA_TYPE = "OPENCL-CPU";
 #elif NVCC
     const std::string CUDA_BORUVKA_TYPE = "CUDA";
@@ -40,11 +39,8 @@ static std::unique_ptr<BaseBoruvkaMSTSolver> createBoruvkaMSTSolver(const std::s
 
 static std::unique_ptr<BaseBoruvkaMSTSolver> createBoruvkaMSTSolver(const std::string &arg)
 {
-    if (false)
-    {
-    }
     #ifdef GCC
-    else if (arg == SEQUENTIAL_FINDPIVOT_BORUVKA_TYPE)
+    if (arg == SEQUENTIAL_FINDPIVOT_BORUVKA_TYPE)
     {
         return std::make_unique<SequentialBoruvkaMSTSolverWithFindPivot>();
     }
@@ -60,14 +56,9 @@ static std::unique_ptr<BaseBoruvkaMSTSolver> createBoruvkaMSTSolver(const std::s
     {
         return std::make_unique<OpenMPBoruvkaMSTSolverMutex>();
     }
-    else if (arg == OPENCL_NVIDIAGPU_BORUVKA_TYPE)
+    else if (arg == OPENCL_GPU_BORUVKA_TYPE)
     {
         std::string deviceName = "NVIDIA CUDA";
-        return std::make_unique<OpenCLBoruvkaMSTSolver>(deviceName);
-    }
-    else if (arg == OPENCL_INTELGPU_BORUVKA_TYPE)
-    {
-        std::string deviceName = "Intel(R) OpenCL HD Graphics";
         return std::make_unique<OpenCLBoruvkaMSTSolver>(deviceName);
     }
     else if (arg == OPENCL_CPU_BORUVKA_TYPE)
@@ -80,7 +71,7 @@ static std::unique_ptr<BaseBoruvkaMSTSolver> createBoruvkaMSTSolver(const std::s
         return std::make_unique<StdThreadBoruvkaMSTSolver>();
     }
     #elif NVCC
-    else if (arg == CUDA_BORUVKA_TYPE)
+    if (arg == CUDA_BORUVKA_TYPE)
     {
         return std::make_unique<CudaBoruvkaMSTSolver>();
     }

@@ -212,5 +212,5 @@ int main() {
     test07();
     test08();
 
-    std::cout << "All test are successfull" << std::endl;
+    std::cout << "All tests are passed" << std::endl;
 }
