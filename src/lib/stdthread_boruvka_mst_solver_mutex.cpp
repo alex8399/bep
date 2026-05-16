@@ -1,4 +1,4 @@
-#include "stdthread_boruvka_mst_solver.hpp"
+#include "stdthread_boruvka_mst_solver_mutex.hpp"
 
 #include "graph.hpp"
 
@@ -6,6 +6,7 @@
 #include <numeric>
 #include <stdexcept>
 #include <thread>
+#include <mutex>
 #include <vector>
 #include "experiment_setup.hpp"
 
@@ -53,7 +54,7 @@ static void uniteRoots(std::vector<int> &pivots, std::vector<int> &sizes, int ro
     sizes[root1] += sizes[root2];
 }
 
-void StdThreadBoruvkaMSTSolver::calculateMST(const Graph &graph, Graph &mst, ExperimentSetup &experimentSetup)
+void StdThreadBoruvkaMSTSolverMutex::calculateMST(const Graph &graph, Graph &mst, ExperimentSetup &experimentSetup)
 {
     const int verticesNum = graph.verticesNum;
     const std::size_t edgesNum = graph.edges.size();
@@ -67,10 +68,9 @@ void StdThreadBoruvkaMSTSolver::calculateMST(const Graph &graph, Graph &mst, Exp
     std::vector<int> pivots(verticesNum);
     std::iota(pivots.begin(), pivots.end(), 0);
     std::vector<int> sizes(verticesNum, 1);
-
-    std::vector<std::vector<int>> threadLocal(threadsNum, std::vector<int>(verticesNum, NULL_EDGE));
     std::vector<int> cheapestEdge(verticesNum, NULL_EDGE);
     
+    std::vector<std::mutex> locks(graph.verticesNum);
     std::vector<std::thread> workers;
     workers.reserve(threadsNum);
 
@@ -81,14 +81,11 @@ void StdThreadBoruvkaMSTSolver::calculateMST(const Graph &graph, Graph &mst, Exp
         experimentSetup.edgePhaseTimer.start();
 
         std::fill(cheapestEdge.begin(), cheapestEdge.end(), NULL_EDGE);
-        for (std::vector<int> &vec: threadLocal) { std::fill(vec.begin(), vec.end(), NULL_EDGE); }
 
         auto scanEdgesWorker = [&](int tid)
         {
             int begin = edgesNum * tid / threadsNum;
             int end = edgesNum * (tid + 1) / threadsNum;
-
-            std::vector<int> &cheapestEdgeLocal = threadLocal[tid];
 
             for (int ind = begin; ind < end; ++ind)
             {
@@ -98,16 +95,22 @@ void StdThreadBoruvkaMSTSolver::calculateMST(const Graph &graph, Graph &mst, Exp
 
                 if (pivot1 != pivot2)
                 {
-                    if (cheapestEdgeLocal[pivot1] == NULL_EDGE ||
-                        edge.weight < graph.edges[cheapestEdgeLocal[pivot1]].weight)
                     {
-                        cheapestEdgeLocal[pivot1] = ind;
+                        std::lock_guard<std::mutex> guard(locks[pivot1]);
+
+                        if (cheapestEdge[pivot1] == NULL_EDGE || edge.weight < graph.edges[cheapestEdge[pivot1]].weight)
+                        {
+                            cheapestEdge[pivot1] = ind;
+                        }
                     }
 
-                    if (cheapestEdgeLocal[pivot2] == NULL_EDGE ||
-                        edge.weight < graph.edges[cheapestEdgeLocal[pivot2]].weight)
                     {
-                        cheapestEdgeLocal[pivot2] = ind;
+                        std::lock_guard<std::mutex> guard(locks[pivot2]);
+
+                        if (cheapestEdge[pivot2] == NULL_EDGE || edge.weight < graph.edges[cheapestEdge[pivot2]].weight)
+                        {
+                            cheapestEdge[pivot2] = ind;
+                        }
                     }
                 }
             }
@@ -116,39 +119,6 @@ void StdThreadBoruvkaMSTSolver::calculateMST(const Graph &graph, Graph &mst, Exp
         for (int tid = 0; tid < threadsNum; ++tid)
         {
             workers.emplace_back(scanEdgesWorker, tid);
-        }
-
-        for (std::thread &worker : workers)
-        {
-            worker.join();
-        }
-
-        workers.clear();
-
-        auto reduceWorker = [&](int tid)
-        {
-            int begin = verticesNum * tid / threadsNum;
-            int end = verticesNum * (tid + 1) / threadsNum;
-
-            for (int pivot = begin; pivot < end; ++pivot)
-            {
-                for (int thread = 0; thread < threadsNum; ++thread)
-                {
-                    int localEdge = threadLocal[thread][pivot];
-
-                    if (localEdge != NULL_EDGE &&
-                        (cheapestEdge[pivot] == NULL_EDGE ||
-                         graph.edges[localEdge].weight < graph.edges[cheapestEdge[pivot]].weight))
-                    {
-                        cheapestEdge[pivot] = localEdge;
-                    }
-                }
-            }
-        };
-
-        for (int tid = 0; tid < threadsNum; ++tid)
-        {
-            workers.emplace_back(reduceWorker, tid);
         }
 
         for (std::thread &worker : workers)

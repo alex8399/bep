@@ -11,7 +11,8 @@
 #include "sequential_boruvka_mst_solver_findpivotsafely.hpp"
 #include "openmp_boruvka_mst_solver_mapreduce.hpp"
 #include "openmp_boruvka_mst_solver_mutex.hpp"
-#include "stdthread_boruvka_mst_solver.hpp"
+#include "stdthread_boruvka_mst_solver_mapreduce.hpp"
+#include "stdthread_boruvka_mst_solver_mutex.hpp"
 #include "opencl_boruvka_mst_solver.hpp"
 
 const Graph GRAPH_01{
@@ -116,7 +117,8 @@ using SolverTypes = ::testing::Types<
     SequentialBoruvkaMSTSolverWithFindPivotSafely,
     OpenMPBoruvkaMSTSolverMapReduce,
     OpenMPBoruvkaMSTSolverMutex,
-    StdThreadBoruvkaMSTSolver,
+    StdThreadBoruvkaMSTSolverMapReduce,
+    StdThreadBoruvkaMSTSolverMutex,
     OpenCLBoruvkaMSTSolver>;
 
 TYPED_TEST_SUITE(BoruvkaMSTTestFixture, SolverTypes);

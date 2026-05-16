@@ -8,8 +8,8 @@ TST_DIR = tst
 UTILS_DIR = utils
 NVIDIA_TOOLKIT_DIR = D:\Programs\Nvidia-toolkit
 
-CXXFLAGS = -I $(INC_DIR) -O2 -std=c++20
-NVCCFLAGS = -I $(INC_DIR) -O2 -std=c++20 -arch=sm_75 -Xcompiler="/O2 /std:c++20"
+CXXFLAGS = -I $(INC_DIR) -O2 -march=native -DNDEBUG -std=c++20
+NVCCFLAGS = -I $(INC_DIR) -O2 -std=c++20 -arch=sm_75 -Xcompiler="/O2 /std:c++20 /DNDEBUG /arch:AVX2"
 
 OPENMPFLAGS = -fopenmp
 STDTHREADFLAGS = -pthread
@@ -49,7 +49,8 @@ $(BLD_DIR)/experiment.exe: \
 	$(BLD_DIR)/sequential_boruvka_mst_solver_findpivot.o \
 	$(BLD_DIR)/openmp_boruvka_mst_solver_mapreduce.o \
 	$(BLD_DIR)/openmp_boruvka_mst_solver_mutex.o \
-	$(BLD_DIR)/stdthread_boruvka_mst_solver.o \
+	$(BLD_DIR)/stdthread_boruvka_mst_solver_mapreduce.o \
+	$(BLD_DIR)/stdthread_boruvka_mst_solver_mutex.o \
 	$(BLD_DIR)/opencl_boruvka_mst_solver.o
 	$(CXX) $^ $(OPENMPFLAGS) $(STDTHREADFLAGS) $(OPENCLFLAGS) -o $@
 
@@ -80,7 +81,10 @@ $(BLD_DIR)/openmp_boruvka_mst_solver_mapreduce.o: $(LIB_DIR)/openmp_boruvka_mst_
 $(BLD_DIR)/openmp_boruvka_mst_solver_mutex.o: $(LIB_DIR)/openmp_boruvka_mst_solver_mutex.cpp
 	$(CXX) $(CXXFLAGS) $(OPENMPFLAGS) -c $< -o $@
 
-$(BLD_DIR)/stdthread_boruvka_mst_solver.o: $(LIB_DIR)/stdthread_boruvka_mst_solver.cpp
+$(BLD_DIR)/stdthread_boruvka_mst_solver_mapreduce.o: $(LIB_DIR)/stdthread_boruvka_mst_solver_mapreduce.cpp
+	$(CXX) $(CXXFLAGS) $(STDTHREADFLAGS) -c $< -o $@
+
+$(BLD_DIR)/stdthread_boruvka_mst_solver_mutex.o: $(LIB_DIR)/stdthread_boruvka_mst_solver_mutex.cpp
 	$(CXX) $(CXXFLAGS) $(STDTHREADFLAGS) -c $< -o $@
 
 $(BLD_DIR)/opencl_boruvka_mst_solver.o: $(LIB_DIR)/opencl_boruvka_mst_solver.cpp
@@ -98,7 +102,8 @@ $(BLD_DIR)/tst_experiment.exe: \
 	$(BLD_DIR)/sequential_boruvka_mst_solver_findpivot.o \
 	$(BLD_DIR)/openmp_boruvka_mst_solver_mapreduce.o \
 	$(BLD_DIR)/openmp_boruvka_mst_solver_mutex.o \
-	$(BLD_DIR)/stdthread_boruvka_mst_solver.o \
+	$(BLD_DIR)/stdthread_boruvka_mst_solver_mapreduce.o \
+	$(BLD_DIR)/stdthread_boruvka_mst_solver_mutex.o \
 	$(BLD_DIR)/opencl_boruvka_mst_solver.o
 	$(CXX) $^ $(OPENMPFLAGS) $(STDTHREADFLAGS) $(OPENCLFLAGS) $(GTESTFLAGS) -o $@
 

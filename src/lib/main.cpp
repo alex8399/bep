@@ -14,7 +14,8 @@
     #include "sequential_boruvka_mst_solver_findpivotsafely.hpp"
     #include "openmp_boruvka_mst_solver_mapreduce.hpp"
     #include "openmp_boruvka_mst_solver_mutex.hpp"
-    #include "stdthread_boruvka_mst_solver.hpp"
+    #include "stdthread_boruvka_mst_solver_mapreduce.hpp"
+    #include "stdthread_boruvka_mst_solver_mutex.hpp"
     #include "opencl_boruvka_mst_solver.hpp"
 #elif NVCC
     #include "cuda_boruvka_mst_solver.hpp"
@@ -28,7 +29,8 @@ constexpr int ERROR = 1;
     const std::string SEQUENTIAL_FINDPIVOTSAFELY_BORUVKA_TYPE = "SEQ-FINDPIVOTSAFELY";
     const std::string OPENMP_MAPREDUCE_BORUVKA_TYPE = "OPENMP-MAPREDUCE";
     const std::string OPENMP_MUTEX_BORUVKA_TYPE = "OPENMP-MUTEX";
-    const std::string STDTHREAD_BORUVKA_TYPE = "STDTHREAD";
+    const std::string STDTHREAD_MAPREDUCE_BORUVKA_TYPE = "STDTHREAD-MAPREDUCE";
+    const std::string STDTHREAD_MUTEX_BORUVKA_TYPE = "STDTHREAD-MUTEX";
     const std::string OPENCL_GPU_BORUVKA_TYPE = "OPENCL-GPU";
     const std::string OPENCL_CPU_BORUVKA_TYPE = "OPENCL-CPU";
 #elif NVCC
@@ -66,9 +68,13 @@ static std::unique_ptr<BaseBoruvkaMSTSolver> createBoruvkaMSTSolver(const std::s
         std::string deviceName = "Intel(R) OpenCL";
         return std::make_unique<OpenCLBoruvkaMSTSolver>(deviceName);
     }
-    else if (arg == STDTHREAD_BORUVKA_TYPE)
+    else if (arg == STDTHREAD_MAPREDUCE_BORUVKA_TYPE)
     {
-        return std::make_unique<StdThreadBoruvkaMSTSolver>();
+        return std::make_unique<StdThreadBoruvkaMSTSolverMapReduce>();
+    }
+    else if (arg == STDTHREAD_MUTEX_BORUVKA_TYPE)
+    {
+        return std::make_unique<StdThreadBoruvkaMSTSolverMutex>();
     }
     #elif NVCC
     if (arg == CUDA_BORUVKA_TYPE)
